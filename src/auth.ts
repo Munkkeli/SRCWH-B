@@ -124,14 +124,12 @@ export const login = async ({
 
 export const check = async ({
   trx,
-  token,
-  user
+  token
 }: {
   trx: PoolClient;
   token: string;
-  user: string;
 }) => {
-  return await Token.validate({ trx, token, user });
+  return await Token.validate({ trx, token });
 };
 
 export const logout = async ({

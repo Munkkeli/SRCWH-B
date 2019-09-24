@@ -2,6 +2,9 @@ import { PoolClient } from 'pg';
 
 import * as DB from './db';
 
+import * as Token from './lib/token';
+import * as User from './lib/user';
+
 export const Request = (
   action: (trx: PoolClient, req, res, next) => Promise<any>
 ) => async (req, res, next) => {
@@ -28,4 +31,33 @@ export const Request = (
 
     return res.sendStatus(200);
   }
+};
+
+export const authenticate = async (req, res, next) => {
+  const authorization = req.get('Authorization');
+  if (!authorization) return next();
+  if (!authorization.includes('Bearer ')) return next();
+
+  const trx = await DB.connect();
+
+  try {
+    const token = authorization.split(' ')[1];
+    const userId = await Token.validate({ trx, token });
+    if (!userId) return next();
+
+    const user = await User.get({ trx, hash: userId });
+    if (!user) return next();
+
+    req.user = user;
+    req.token = token;
+  } catch (error) {
+    console.error(error);
+  }
+
+  return next();
+};
+
+export const protect = (req, res, next) => {
+  if (req.user) return next();
+  return res.sendStatus(403);
 };

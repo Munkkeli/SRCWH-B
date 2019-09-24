@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as http from 'http';
 import * as https from 'https';
 import * as express from 'express';
+import * as helmet from 'helmet';
 import * as bodyParser from 'body-parser';
 import * as cors from 'cors';
 import { parse } from 'date-fns';
@@ -10,14 +11,17 @@ import { config } from 'dotenv';
 
 config();
 
-import { Request } from './src/middleware';
+import { Request, authenticate, protect } from './src/middleware';
 import { login, check, logout } from './src/auth';
 import * as Schedule from './src/schedule';
 
 const app = express();
 
 app.use(cors());
+app.use(helmet());
 app.use(bodyParser.json());
+
+app.use(authenticate);
 
 app.get(
   '/ping',
@@ -42,32 +46,29 @@ app.post(
   Request(async (trx, req, res) => {
     return await check({
       trx,
-      token: req.body.token,
-      user: req.body.user
+      token: req.body.token
     });
   })
 );
 
 app.post(
   '/logout',
+  protect,
   Request(async (trx, req, res) => {
     return await logout({
       trx,
-      token: req.body.token
+      token: req.token
     });
   })
 );
 
 app.get(
   '/schedule',
+  protect,
   Request(async (trx, req, res) => {
     return await Schedule.get({
       trx,
-      user: {
-        hash:
-          'f7a5693b754bcc9040a0f10dc5e103eb6ff0693dcd6624dd10fe152d21cb5217',
-        group: 'ICT17-M'
-      },
+      user: req.user,
       today: '2019-09-17' // TODO: remove debug override
     });
   })
@@ -75,14 +76,11 @@ app.get(
 
 app.post(
   '/attend',
+  protect,
   Request(async (trx, req, res) => {
     return await Schedule.attend({
       trx,
-      user: {
-        hash:
-          'f7a5693b754bcc9040a0f10dc5e103eb6ff0693dcd6624dd10fe152d21cb5217',
-        group: 'ICT17-M'
-      },
+      user: req.user,
       slabId: req.body.slab,
       coordinates: req.body.coordinates,
       confirmUpdate: req.body.confirmUpdate === true,

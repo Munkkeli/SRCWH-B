@@ -11,7 +11,6 @@ import {
 import { PoolClient } from 'pg';
 
 import * as User from './lib/user';
-import * as Token from './lib/token';
 import * as Lesson from './lib/lesson';
 import * as Slab from './lib/slab';
 import * as CheckIn from './lib/checkin';
@@ -184,6 +183,8 @@ export const get = async ({
   user: User.User;
   today?: string;
 }) => {
+  if (!user.group) return [];
+
   const day = today || format(new Date(), 'yyyy-MM-dd');
   const list = await getListOfLessons(user.group, day);
 

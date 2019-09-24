@@ -7,21 +7,19 @@ const generateAccessToken = () => {
 
 export const validate = async ({
   trx,
-  token,
-  user
+  token
 }: {
   trx: PoolClient;
   token: string;
-  user: string;
 }) => {
   const { rows } = await trx.query(
-    'SELECT value FROM "token" WHERE value = $1 AND user_id = $2 AND expires_at > now()',
-    [token, user]
+    'SELECT user_id FROM "token" WHERE value = $1 AND expires_at > now()',
+    [token]
   );
 
-  if (!rows.length) return { valid: false };
+  if (!rows.length) return false;
 
-  return { valid: true };
+  return rows[0].user_id.toString();
 };
 
 export const create = async ({
