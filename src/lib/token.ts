@@ -38,7 +38,7 @@ export const create = async ({
     [token, user, new Date(Date.now() + 20000)]
   );
 
-  if (!rows.length) throw new Error('Could not create tpken');
+  if (!rows.length) throw new Error('Could not create token');
 
   return rows[0].value.toString();
 };

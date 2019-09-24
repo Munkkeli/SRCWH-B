@@ -11,6 +11,7 @@ config();
 
 import { Request } from './src/middleware';
 import { login, check, logout } from './src/auth';
+import * as Schedule from './src/schedule';
 
 const app = express();
 
@@ -53,6 +54,21 @@ app.post(
       trx,
       token: req.body.token
     });
+  })
+);
+
+app.get(
+  '/schedule',
+  Request(async (trx, req, res) => {
+    console.log(
+      await Schedule.get({
+        trx,
+        user: { hash: 'asdasd', group: 'ICT17-M' },
+        day: '2019-09-24'
+      })
+    );
+
+    return false;
   })
 );
 
