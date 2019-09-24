@@ -1,6 +1,7 @@
 import * as crypto from 'crypto';
 import { PoolClient } from 'pg';
 import { User } from './user';
+import { Slab } from './slab';
 
 export interface CheckIn {
   id: string;
@@ -42,40 +43,40 @@ export const create = async ({
   trx,
   user,
   lesson,
-  location
+  slab
 }: {
   trx: PoolClient;
   user: User;
   lesson: string;
-  location: string;
+  slab: Slab;
 }) => {
   const { rows } = await trx.query(
-    'INSERT INTO "checkin" (user_id, lesson_id, group, location) VALUES ($1, $2, $3, $4) RETURNING id',
-    [user.hash, lesson, user.group, location]
+    'INSERT INTO "checkin" (user_id, lesson_id, "group", location) VALUES ($1, $2, $3, $4) RETURNING id',
+    [user.hash, lesson, user.group, slab.location]
   );
 
   if (!rows.length) throw new Error('Could not create checkin');
 
-  return rows[0].value.toString();
+  return rows[0].id.toString();
 };
 
 export const update = async ({
   trx,
   user,
   lesson,
-  location
+  slab
 }: {
   trx: PoolClient;
   user: User;
   lesson: string;
-  location: string;
+  slab: Slab;
 }) => {
-  const { rows } = await trx.query(
-    'UPDATE "checkin" SET group = $1, location = $2 WHERE user_id = $3 AND lesson_id = $4',
-    [user.group, location, user.hash, lesson]
+  const { rowCount } = await trx.query(
+    'UPDATE "checkin" SET "group" = $1, location = $2 WHERE user_id = $3 AND lesson_id = $4',
+    [user.group, slab.location, user.hash, lesson]
   );
 
-  if (!rows.length) throw new Error('Could not update checkin');
+  if (!rowCount) throw new Error('Could not update checkin');
 };
 
 export const exists = async ({
@@ -88,11 +89,11 @@ export const exists = async ({
   lesson: string;
 }) => {
   const { rows } = await trx.query(
-    'SELECT COUNT(*) FROM "checkin" WHERE user_id = $1 AND lesson_id = $2',
+    'SELECT location FROM "checkin" WHERE user_id = $1 AND lesson_id = $2',
     [user.hash, lesson]
   );
 
-  if (!rows.length) throw new Error('Failed to count checkin');
+  if (!rows.length) return null;
 
-  return rows[0].count > 0;
+  return rows[0].location;
 };

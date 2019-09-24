@@ -1,11 +1,20 @@
 import * as crypto from 'crypto';
 import * as request from 'request-promise';
-import { compareAsc, format, parse, addDays } from 'date-fns';
+import {
+  format,
+  parse,
+  addDays,
+  isAfter,
+  isBefore,
+  differenceInMinutes
+} from 'date-fns';
 import { PoolClient } from 'pg';
 
 import * as User from './lib/user';
 import * as Token from './lib/token';
 import * as Lesson from './lib/lesson';
+import * as Slab from './lib/slab';
+import * as CheckIn from './lib/checkin';
 
 const hashLessonId = (id: string) => {
   return crypto
@@ -76,7 +85,7 @@ const getListOfLessons = async (group: string, dayString: string) => {
     const locationList = x
       .match(/(?<=<b>).*?(?=<\/b>)/gm)[0]
       .split(';')
-      .map(y => y.trim());
+      .map(y => y.split('-')[0].trim());
 
     const infoLine = x.match(/(?<=<br\/>).*?(?=<br\/>)/gms);
 
@@ -91,8 +100,16 @@ const getListOfLessons = async (group: string, dayString: string) => {
     let timestamp = addDays(firstDay, requestedDay.index);
 
     lessonList.push({
-      start: `${format(timestamp, 'yyyy-MM-dd')} ${time[0]}`,
-      end: `${format(timestamp, 'yyyy-MM-dd')} ${time[1]}`,
+      start: parse(
+        `${format(timestamp, 'yyyy-MM-dd')} ${time[0]}`,
+        'yyyy-MM-dd HH:mm',
+        timestamp
+      ),
+      end: parse(
+        `${format(timestamp, 'yyyy-MM-dd')} ${time[1]}`,
+        'yyyy-MM-dd HH:mm',
+        timestamp
+      ),
       locationList,
       code,
       name,
@@ -104,16 +121,71 @@ const getListOfLessons = async (group: string, dayString: string) => {
   return lessonList as Lesson.Lesson[];
 };
 
+const checkIfLessonIsAvailable = (
+  now: Date,
+  lesson: Lesson.Lesson,
+  last?: Lesson.Lesson
+) => {
+  const after = isAfter(now, lesson.start);
+  const before = isBefore(now, lesson.end);
+  const between = after && before;
+
+  // If lesson is currently ongoing
+  if (between) return true;
+
+  // If there was a lesson before this lesson, make sure the 30 min rule does no collide with it
+  let timeBetweenLessons = 30;
+  if (last) {
+    timeBetweenLessons = Math.min(
+      30,
+      differenceInMinutes(lesson.start, last.end)
+    );
+  }
+
+  // If the lesson starts in less than 30 mins
+  if (!after && differenceInMinutes(lesson.start, now) <= timeBetweenLessons) {
+    return true;
+  }
+
+  return false;
+};
+
+const calculateDistanceBetweenPoints = (
+  a: { x: number; y: number },
+  b: { x: number; y: number }
+) => {
+  const radlat1 = (Math.PI * a.x) / 180;
+  const radlat2 = (Math.PI * b.x) / 180;
+  const theta = a.y - b.y;
+  const radtheta = (Math.PI * theta) / 180;
+
+  let dist =
+    Math.sin(radlat1) * Math.sin(radlat2) +
+    Math.cos(radlat1) * Math.cos(radlat2) * Math.cos(radtheta);
+
+  if (dist > 1) {
+    dist = 1;
+  }
+
+  dist = Math.acos(dist);
+  dist = (dist * 180) / Math.PI;
+  dist = dist * 60 * 1.1515;
+  dist = dist * 1.609344;
+  dist = dist * 1000;
+  return dist;
+};
+
 export const get = async ({
   trx,
   user,
-  day
+  today
 }: {
   trx: PoolClient;
   user: User.User;
-  day: string;
+  today?: string;
 }) => {
-  const list = await getListOfLessons(user.group, '2019-09-24');
+  const day = today || format(new Date(), 'yyyy-MM-dd');
+  const list = await getListOfLessons(user.group, day);
 
   for (let lesson of list) {
     let id = await Lesson.exists({ trx, lesson });
@@ -122,11 +194,102 @@ export const get = async ({
     }
 
     lesson.id = id;
+
+    lesson.attended = await CheckIn.exists({ trx, user, lesson: lesson.id });
   }
 
   return list;
 };
 
-export const attend = async (user: User.User, lesson: Lesson.Lesson) => {
-  // TODO: make this
+export const attend = async ({
+  trx,
+  user,
+  slabId,
+  coordinates,
+  confirmUpdate,
+  today
+}: {
+  trx: PoolClient;
+  user: User.User;
+  slabId: string;
+  coordinates: { x: number; y: number };
+  confirmUpdate: boolean;
+  today?: Date;
+}) => {
+  const slab = await Slab.get({ trx, slab: slabId });
+
+  let state = {
+    success: false,
+    requiresUpdate: false,
+    valid: {
+      slab: null,
+      lesson: null,
+      position: null
+    }
+  };
+
+  // No slab found with ID
+  if (!slab) {
+    state.valid.slab = false;
+    return state;
+  }
+
+  state.valid.slab = true;
+
+  // const now = new Date();
+  const now = today || new Date();
+  const lessonList = await get({ trx, user, today: format(now, 'yyyy-MM-dd') });
+
+  // Search for an ongoing lesson
+  let lastLesson = null;
+  let validLesson = null;
+  for (let lesson of lessonList) {
+    const valid = checkIfLessonIsAvailable(now, lesson, lastLesson);
+    if (valid) {
+      validLesson = lesson;
+      break;
+    }
+    lastLesson = lesson;
+  }
+
+  // No valid lesson found
+  if (!validLesson) {
+    state.valid.lesson = false;
+    return state;
+  }
+
+  state.valid.lesson = true;
+
+  // Make sure person is in range (20 meters or less)
+  const distance = calculateDistanceBetweenPoints(
+    coordinates,
+    slab.coordinates
+  );
+  if (distance > 40) {
+    state.valid.position = false;
+    return state;
+  }
+
+  state.valid.position = true;
+
+  /* Everything is good, save the attendance */
+
+  // Check if attendance record for this lesson already exists, and ask if it should be updated
+  const update = await CheckIn.exists({ trx, user, lesson: validLesson.id });
+  state.requiresUpdate = update;
+  if (update && !confirmUpdate) {
+    return state;
+  }
+
+  // Create or update the attendance record
+  if (update) {
+    await CheckIn.update({ trx, user, lesson: validLesson.id, slab });
+  } else {
+    await CheckIn.create({ trx, user, lesson: validLesson.id, slab });
+  }
+
+  state.success = true;
+
+  // Return the good news!
+  return state;
 };

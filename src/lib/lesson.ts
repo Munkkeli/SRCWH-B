@@ -10,6 +10,7 @@ export interface Lesson {
   name: string;
   groupList: string[];
   teacherList: string[];
+  attended?: string;
 }
 
 export const hashLessonId = (lesson: Lesson) => {

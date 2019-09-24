@@ -4,6 +4,7 @@ import * as https from 'https';
 import * as express from 'express';
 import * as bodyParser from 'body-parser';
 import * as cors from 'cors';
+import { parse } from 'date-fns';
 
 import { config } from 'dotenv';
 
@@ -60,15 +61,33 @@ app.post(
 app.get(
   '/schedule',
   Request(async (trx, req, res) => {
-    console.log(
-      await Schedule.get({
-        trx,
-        user: { hash: 'asdasd', group: 'ICT17-M' },
-        day: '2019-09-24'
-      })
-    );
+    return await Schedule.get({
+      trx,
+      user: {
+        hash:
+          'f7a5693b754bcc9040a0f10dc5e103eb6ff0693dcd6624dd10fe152d21cb5217',
+        group: 'ICT17-M'
+      },
+      today: '2019-09-17' // TODO: remove debug override
+    });
+  })
+);
 
-    return false;
+app.post(
+  '/attend',
+  Request(async (trx, req, res) => {
+    return await Schedule.attend({
+      trx,
+      user: {
+        hash:
+          'f7a5693b754bcc9040a0f10dc5e103eb6ff0693dcd6624dd10fe152d21cb5217',
+        group: 'ICT17-M'
+      },
+      slabId: req.body.slab,
+      coordinates: req.body.coordinates,
+      confirmUpdate: req.body.confirmUpdate === true,
+      today: parse('2019-09-17 14:00', 'yyyy-MM-dd HH:mm', new Date()) // TODO: remove debug override
+    });
   })
 );
 

@@ -1,3 +1,5 @@
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
 create table "user"
 (
   id bytea not null,
@@ -66,3 +68,18 @@ create unique index checkin_id_uindex
 alter table "checkin"
   add constraint checkin_pk
     primary key (id);
+
+create table "slab"
+(
+  id uuid default uuid_generate_v4() not null,
+  coordinates point not null,
+  location text not null
+);
+
+create unique index slab_id_uindex
+  on "slab" (id);
+
+alter table "slab"
+  add constraint slab_pk
+    primary key (id);
+
