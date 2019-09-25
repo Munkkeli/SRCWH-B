@@ -102,7 +102,8 @@ if (process.env.SSL == 'false') {
   server = https.createServer(
     {
       key: fs.readFileSync(process.env.SSL_PRIVATE_KEY, 'utf8'),
-      cert: fs.readFileSync(process.env.SSL_CERTIFICATE, 'utf8')
+      cert: fs.readFileSync(process.env.SSL_CERTIFICATE, 'utf8'),
+      ca: fs.readFileSync(process.env.SSL_CA_BUNDLE, 'utf8')
     },
     app
   );
