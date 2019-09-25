@@ -1,3 +1,8 @@
+## Authentication
+
+Authentication with the API is done by setting the `Authorization` header on a request to `Bearer <TOKEN>`.
+The token used is the access token from calling `/login`.
+
 ## Endpoints
 
 ### `/ping`

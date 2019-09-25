@@ -277,7 +277,7 @@ export const attend = async ({
 
   // Check if attendance record for this lesson already exists, and ask if it should be updated
   const update = await CheckIn.exists({ trx, user, lesson: validLesson.id });
-  state.requiresUpdate = update;
+  state.requiresUpdate = !!update;
   if (update && !confirmUpdate) {
     return state;
   }
