@@ -27,6 +27,7 @@ export const Request = (
     trx.release();
 
     if (failed) return res.sendStatus(500);
+    if (!isNaN(Number(response))) return res.sendStatus(response);
     if (response) return res.send(response);
 
     return res.sendStatus(200);

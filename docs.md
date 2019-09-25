@@ -24,7 +24,7 @@ Response:
 
 ### `/login`
 
-Login with Metropolia account. Returns account info and access token.
+Login with Metropolia account. Returns account info and access token. If invalid login, returns `403`.
 
 **NOTE:** If more than one group is returned, no default group is saved, and user must be updated with a default group.
 
@@ -64,13 +64,7 @@ Request: `POST`
 {}
 ```
 
-Response:
-
-```json
-{
-  "valid": true
-}
-```
+Response: `200` or `403`
 
 ---
 

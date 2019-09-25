@@ -93,11 +93,11 @@ export const login = async ({
 }) => {
   // Login with Metropolia
   const session = await authenticateWithMetropolia(username, password);
-  if (!session) return false;
+  if (!session) return 403;
 
   // Load user info from Metropolia
   const info = await getMetropoliaUserInfo(session);
-  if (!info) return false;
+  if (!info) return 403;
 
   const hash = User.hashUserId(info.id);
 
@@ -130,8 +130,8 @@ export const check = async ({
   token: string;
 }) => {
   const user = await Token.validate({ trx, token });
-  if (user) return { valid: true };
-  return { valid: false };
+  if (user) return 200;
+  return 403;
 };
 
 export const logout = async ({
