@@ -129,7 +129,9 @@ export const check = async ({
   trx: PoolClient;
   token: string;
 }) => {
-  return await Token.validate({ trx, token });
+  const user = await Token.validate({ trx, token });
+  if (user) return { valid: true };
+  return { valid: false };
 };
 
 export const logout = async ({

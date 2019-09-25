@@ -32,8 +32,8 @@ export const create = async ({
   const token = generateAccessToken();
 
   const { rows } = await trx.query(
-    'INSERT INTO "token" (value, user_id, expires_at) VALUES ($1, $2, $3) RETURNING value',
-    [token, user, new Date(Date.now() + 20000)]
+    'INSERT INTO "token" (value, user_id) VALUES ($1, $2) RETURNING value',
+    [token, user]
   );
 
   if (!rows.length) throw new Error('Could not create token');

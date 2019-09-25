@@ -46,7 +46,7 @@ app.post(
   Request(async (trx, req, res) => {
     return await check({
       trx,
-      token: req.body.token
+      token: req.token
     });
   })
 );
@@ -84,7 +84,11 @@ app.post(
       slabId: req.body.slab,
       coordinates: req.body.coordinates,
       confirmUpdate: req.body.confirmUpdate === true,
-      today: parse('2019-09-17 14:00', 'yyyy-MM-dd HH:mm', new Date()) // TODO: remove debug override
+      today: parse(
+        `2019-09-17 ${req.body.debugTime || '12:00'}`,
+        'yyyy-MM-dd HH:mm',
+        new Date()
+      ) // TODO: remove debug override
     });
   })
 );
