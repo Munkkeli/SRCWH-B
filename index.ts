@@ -5,6 +5,7 @@ import * as express from 'express';
 import * as helmet from 'helmet';
 import * as bodyParser from 'body-parser';
 import * as cors from 'cors';
+import * as morgan from 'morgan';
 import { parse } from 'date-fns';
 
 import { config } from 'dotenv';
@@ -20,6 +21,8 @@ const app = express();
 app.use(cors());
 app.use(helmet());
 app.use(bodyParser.json());
+
+app.use(morgan('tiny'));
 
 app.use(authenticate);
 
@@ -96,7 +99,10 @@ app.post(
 // Used to automatically open the app from NFC read
 let assetLinks = JSON.parse(fs.readFileSync('assetlinks.json').toString());
 assetLinks[0].target.sha256_cert_fingerprints.push(process.env.APP_FINGERPRINT);
-app.get('/assetlinks.json', (req, res) => res.send(assetLinks));
+app.get('/.well-known/assetlinks.json', (req, res) => {
+  console.log('Accessed assetlinks.json');
+  res.send(assetLinks);
+});
 
 let server;
 

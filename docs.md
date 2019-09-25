@@ -109,7 +109,7 @@ Response:
     "groupList": ["GROUP-1"],
     "teacherList": ["Mr. Teacher"],
     "id": "<LESSON ID>",
-    "attended": null
+    "attended": "CLASSROOM-1"
   },
   {
     "start": "2019-09-17T12:00:00.000Z",
