@@ -89,6 +89,11 @@ app.post(
   })
 );
 
+// Used to automatically open the app from NFC read
+let assetLinks = JSON.parse(fs.readFileSync('assetlinks.json').toString());
+assetLinks[0].target.sha256_cert_fingerprints.push(process.env.APP_FINGERPRINT);
+app.get('/assetlinks.json', (req, res) => res.send(assetLinks));
+
 let server;
 
 if (process.env.SSL == 'false') {
