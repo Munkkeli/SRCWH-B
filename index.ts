@@ -13,7 +13,7 @@ import { config } from 'dotenv';
 config();
 
 import { Request, authenticate, protect } from './src/middleware';
-import { login, check, logout } from './src/auth';
+import { login, check, logout, update } from './src/auth';
 import * as Schedule from './src/schedule';
 
 const app = express();
@@ -61,6 +61,18 @@ app.post(
     return await logout({
       trx,
       token: req.token
+    });
+  })
+);
+
+app.post(
+  '/update',
+  protect,
+  Request(async (trx, req, res) => {
+    return await update({
+      trx,
+      user: req.user,
+      group: req.body.group
     });
   })
 );

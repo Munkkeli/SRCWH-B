@@ -57,12 +57,12 @@ export const update = async ({
   hash: string;
   group: string;
 }) => {
-  const { rows } = await trx.query(
-    'UPDATE "user" SET group = $2 WHERE id = $1',
+  const { rowCount } = await trx.query(
+    'UPDATE "user" SET "group" = $2 WHERE id = $1',
     [hash, group]
   );
 
-  if (!rows.length) throw new Error('Could not update user');
+  if (!rowCount) throw new Error('Could not update user');
 
   return { hash: hash.toString(), group } as User;
 };

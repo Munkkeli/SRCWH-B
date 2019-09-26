@@ -143,3 +143,19 @@ export const logout = async ({
 }) => {
   await Token.remove({ trx, token });
 };
+
+export const update = async ({
+  trx,
+  user,
+  group
+}: {
+  trx: PoolClient;
+  user: User.User;
+  group: string;
+}) => {
+  await User.update({
+    trx,
+    hash: user.hash,
+    group
+  });
+};

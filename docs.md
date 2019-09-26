@@ -82,6 +82,22 @@ Response: `200`
 
 ---
 
+### `/update`
+
+Update user parameters. Currently the only supported one is `group`.
+
+Request: `POST`
+
+```json
+{
+  "group": "GROUP-1"
+}
+```
+
+Response: `200` or `500`
+
+---
+
 ### `/schedule`
 
 List all lessons happening today, and the status of attendance.
