@@ -41,13 +41,18 @@ export const authenticate = async (req, res, next) => {
 
   const trx = await DB.connect();
 
+  const trxNext = () => {
+    trx.release();
+    return next();
+  };
+
   try {
     const token = authorization.split(' ')[1];
     const userId = await Token.validate({ trx, token });
-    if (!userId) return next();
+    if (!userId) return trxNext();
 
     const user = await User.get({ trx, hash: userId });
-    if (!user) return next();
+    if (!user) return trxNext();
 
     req.user = user;
     req.token = token;
@@ -55,7 +60,7 @@ export const authenticate = async (req, res, next) => {
     console.error(error);
   }
 
-  return next();
+  return trxNext();
 };
 
 export const protect = (req, res, next) => {
