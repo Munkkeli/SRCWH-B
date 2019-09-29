@@ -66,15 +66,26 @@ const getMetropoliaUserInfo = async (session: string) => {
     const lastName = body.match(
       /(?<=Kutsumanimi:<\/td><td>).*?(?=<\/td>)/gm
     )[0];
+    const initialGroupList = body
+      .match(/(?<=Saapumisryhmä:<\/td><td>).*?(?=<\/td>)/gm)[0]
+      .split('<br>');
     const groupList = body
       .match(/(?<=Hallinnollinen ryhmä:<\/td><td>).*?(?=<\/td>)/gm)[0]
       .split('<br>');
+
+    let finalGroupList = groupList;
+    if (!finalGroupList || !finalGroupList.length) {
+      finalGroupList = initialGroupList;
+    }
+    if (!finalGroupList || !finalGroupList.length) {
+      finalGroupList = [];
+    }
 
     return {
       id,
       firstName,
       lastName,
-      groupList
+      groupList: finalGroupList
     };
   } catch (error) {
     console.error('Could not parse user info', error);
