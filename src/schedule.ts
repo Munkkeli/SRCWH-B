@@ -265,12 +265,12 @@ export const attend = async ({
     return state;
   }
 
-  // Make sure person is in range (20 meters or less)
+  // Make sure person is in range (400 meters or less)
   const distance = calculateDistanceBetweenPoints(
     coordinates,
     slab.coordinates
   );
-  if (distance > 40) {
+  if (distance > 400) {
     state.valid.position = false;
     return state;
   }
