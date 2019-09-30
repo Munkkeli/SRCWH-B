@@ -222,20 +222,13 @@ export const attend = async ({
   let state = {
     success: false,
     requiresUpdate: false,
+    lesson: null,
     valid: {
-      slab: null,
       lesson: null,
+      location: null,
       position: null
     }
   };
-
-  // No slab found with ID
-  if (!slab) {
-    state.valid.slab = false;
-    return state;
-  }
-
-  state.valid.slab = true;
 
   // const now = new Date();
   const now = today || new Date();
@@ -243,7 +236,7 @@ export const attend = async ({
 
   // Search for an ongoing lesson
   let lastLesson = null;
-  let validLesson = null;
+  let validLesson: Lesson.Lesson | null = null;
   for (let lesson of lessonList) {
     const valid = checkIfLessonIsAvailable(now, lesson, lastLesson);
     if (valid) {
@@ -259,7 +252,16 @@ export const attend = async ({
     return state;
   }
 
+  state.lesson = validLesson;
   state.valid.lesson = true;
+
+  // Check if the lesson location is the same as the slab location
+  if (!validLesson!.locationList.includes(slab.location)) {
+    state.valid.location = false;
+    return state;
+  }
+
+  state.valid.location = true;
 
   // Make sure person is in range (20 meters or less)
   const distance = calculateDistanceBetweenPoints(

@@ -159,9 +159,10 @@ Response:
 {
   "success": true,
   "requiresUpdate": false,
+  "lesson": <LESSON OBJECT>,
   "valid": {
-    "slab": true,
     "lesson": true,
+    "location": true,
     "position": true
   }
 }
