@@ -260,7 +260,7 @@ export const attend = async ({
   state.valid.lesson = true;
 
   // Check if the lesson location is the same as the slab location
-  state.valid.location = !validLesson!.locationList.includes(slab.location);
+  state.valid.location = validLesson!.locationList.includes(slab.location);
   if (!state.valid.location && !confirmOverride) {
     return state;
   }
