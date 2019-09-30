@@ -149,7 +149,8 @@ Request: `POST`
 {
   "slab": "<SLAB ID>",
   "coordinates": { "x": 60.0, "y": 24.0 },
-  "confirmUpdate": false
+  "confirmUpdate": false,
+  "confirmOverride": false
 }
 ```
 
@@ -157,10 +158,11 @@ Response:
 
 ```json
 {
-  "success": true,
-  "requiresUpdate": false,
+  "success": false,
+  "requiresUpdate": true,
   "lesson": <LESSON OBJECT>,
   "location": "CLASSROOM-1",
+  "existing": "CLASSROOM-2",
   "valid": {
     "lesson": true,
     "location": true,

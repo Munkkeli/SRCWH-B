@@ -208,6 +208,7 @@ export const attend = async ({
   slabId,
   coordinates,
   confirmUpdate,
+  confirmOverride,
   today
 }: {
   trx: PoolClient;
@@ -215,6 +216,7 @@ export const attend = async ({
   slabId: string;
   coordinates: { x: number; y: number };
   confirmUpdate: boolean;
+  confirmOverride: boolean;
   today?: Date;
 }) => {
   const slab = await Slab.get({ trx, slab: slabId });
@@ -224,6 +226,7 @@ export const attend = async ({
     requiresUpdate: false,
     lesson: null,
     location: slab.location,
+    existing: null,
     valid: {
       lesson: null,
       location: null,
@@ -257,12 +260,10 @@ export const attend = async ({
   state.valid.lesson = true;
 
   // Check if the lesson location is the same as the slab location
-  if (!validLesson!.locationList.includes(slab.location)) {
-    state.valid.location = false;
+  state.valid.location = !validLesson!.locationList.includes(slab.location);
+  if (!state.valid.location && !confirmOverride) {
     return state;
   }
-
-  state.valid.location = true;
 
   // Make sure person is in range (20 meters or less)
   const distance = calculateDistanceBetweenPoints(
@@ -281,6 +282,7 @@ export const attend = async ({
   // Check if attendance record for this lesson already exists, and ask if it should be updated
   const update = await CheckIn.exists({ trx, user, lesson: validLesson.id });
   state.requiresUpdate = !!update;
+  state.existing = update || null;
   if (update && !confirmUpdate) {
     return state;
   }

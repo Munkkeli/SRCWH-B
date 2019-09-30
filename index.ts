@@ -99,6 +99,7 @@ app.post(
       slabId: req.body.slab,
       coordinates: req.body.coordinates,
       confirmUpdate: req.body.confirmUpdate === true,
+      confirmOverride: req.body.confirmOverride === true,
       today: parse(
         `2019-09-17 ${req.body.debugTime || '12:00'}`,
         'yyyy-MM-dd HH:mm',
