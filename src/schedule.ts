@@ -223,6 +223,7 @@ export const attend = async ({
     success: false,
     requiresUpdate: false,
     lesson: null,
+    location: slab.location,
     valid: {
       lesson: null,
       location: null,

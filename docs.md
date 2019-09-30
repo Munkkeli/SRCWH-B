@@ -160,6 +160,7 @@ Response:
   "success": true,
   "requiresUpdate": false,
   "lesson": <LESSON OBJECT>,
+  "location": "CLASSROOM-1",
   "valid": {
     "lesson": true,
     "location": true,
