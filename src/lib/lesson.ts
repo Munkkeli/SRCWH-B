@@ -6,6 +6,7 @@ export interface Lesson {
   start: Date;
   end: Date;
   locationList: string[];
+  address: string;
   code: string;
   name: string;
   groupList: string[];
@@ -34,12 +35,13 @@ export const create = async ({
   const hash = hashLessonId(lesson);
 
   const { rows } = await trx.query(
-    'INSERT INTO "lesson" (id, start, "end", location, code, name, "group", teacher) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id',
+    'INSERT INTO "lesson" (id, start, "end", location, address, code, name, "group", teacher) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id',
     [
       hash,
       lesson.start,
       lesson.end,
       lesson.locationList,
+      lesson.address,
       lesson.code,
       lesson.name,
       lesson.groupList,

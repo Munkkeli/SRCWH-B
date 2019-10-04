@@ -79,6 +79,11 @@ const getListOfLessons = async (group: string, dayString: string) => {
       .match(/(?<=<b>).*?(?=<\/b>)/gm)[0]
       .split(';')
       .map(y => y.split('-')[0].trim());
+    const address = x
+      .match(/(?<=<b>).*?(?=<\/b>)/gm)[0]
+      .split(';')[0]
+      .split('-')[1]
+      .trim();
 
     const infoLine = x.match(/(?<=<br\/>).*?(?=<br\/>)/gms);
 
@@ -105,6 +110,7 @@ const getListOfLessons = async (group: string, dayString: string) => {
         timeZone
       }),
       locationList,
+      address,
       code,
       name,
       groupList,

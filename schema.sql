@@ -35,6 +35,7 @@ create table "lesson"
   start timestamp not null,
   "end" timestamp not null,
   location text[] not null,
+  address text,
   code text,
   name text,
   "group" text[],
