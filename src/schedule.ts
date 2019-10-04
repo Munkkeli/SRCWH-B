@@ -8,19 +8,13 @@ import {
   isBefore,
   differenceInMinutes
 } from 'date-fns';
+import { parseFromTimeZone, convertToTimeZone } from 'date-fns-timezone';
 import { PoolClient } from 'pg';
 
 import * as User from './lib/user';
 import * as Lesson from './lib/lesson';
 import * as Slab from './lib/slab';
 import * as CheckIn from './lib/checkin';
-
-const hashLessonId = (id: string) => {
-  return crypto
-    .createHash('sha256')
-    .update(`${id}`)
-    .digest('hex');
-};
 
 const getListOfLessons = async (group: string, dayString: string) => {
   const jar = request.jar();
@@ -98,17 +92,18 @@ const getListOfLessons = async (group: string, dayString: string) => {
 
     let timestamp = addDays(firstDay, requestedDay.index);
 
+    const timeZone = 'Europe/Helsinki';
+
     lessonList.push({
-      start: parse(
+      start: parseFromTimeZone(
         `${format(timestamp, 'yyyy-MM-dd')} ${time[0]}`,
-        'yyyy-MM-dd HH:mm',
-        timestamp
+        {
+          timeZone
+        }
       ),
-      end: parse(
-        `${format(timestamp, 'yyyy-MM-dd')} ${time[1]}`,
-        'yyyy-MM-dd HH:mm',
-        timestamp
-      ),
+      end: parseFromTimeZone(`${format(timestamp, 'yyyy-MM-dd')} ${time[1]}`, {
+        timeZone
+      }),
       locationList,
       code,
       name,
@@ -235,7 +230,7 @@ export const attend = async ({
   };
 
   // const now = new Date();
-  const now = today || new Date();
+  const now = today || convertToTimeZone(new Date(), { timeZone: 'UTC' });
   const lessonList = await get({ trx, user, today: format(now, 'yyyy-MM-dd') });
 
   // Search for an ongoing lesson
