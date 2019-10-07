@@ -235,8 +235,7 @@ export const attend = async ({
     }
   };
 
-  // const now = new Date();
-  const now = today || convertToTimeZone(new Date(), { timeZone: 'UTC' });
+  const now = today || new Date();
   const lessonList = await get({ trx, user, today: format(now, 'yyyy-MM-dd') });
 
   // Search for an ongoing lesson

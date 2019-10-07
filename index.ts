@@ -6,7 +6,7 @@ import * as helmet from 'helmet';
 import * as bodyParser from 'body-parser';
 import * as cors from 'cors';
 import * as morgan from 'morgan';
-import { parse } from 'date-fns';
+import { parse, format } from 'date-fns';
 
 import { config } from 'dotenv';
 
@@ -83,8 +83,8 @@ app.get(
   Request(async (trx, req, res) => {
     return await Schedule.get({
       trx,
-      user: req.user
-      // today: '2019-09-17' // TODO: remove debug override
+      user: req.user,
+      today: '2019-09-17' // TODO: remove debug override
     });
   })
 );
@@ -99,14 +99,12 @@ app.post(
       slabId: req.body.slab,
       coordinates: req.body.coordinates,
       confirmUpdate: req.body.confirmUpdate === true,
-      confirmOverride: req.body.confirmOverride === true
-      /*
+      confirmOverride: req.body.confirmOverride === true,
       today: parse(
-        `2019-09-17 ${req.body.debugTime || '12:00'}`,
+        `2019-09-17 ${req.body.debugTime || format(new Date(), 'HH:mm')}`,
         'yyyy-MM-dd HH:mm',
         new Date()
       ) // TODO: remove debug override
-      */
     });
   })
 );
